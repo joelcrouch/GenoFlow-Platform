@@ -1,0 +1,77 @@
+# Python
+# ========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+.pytest_cache/
+.tox/
+.mypy_cache/
+.vscode/
+
+# IDE-specific files (VS Code)
+.vscode/
+# VS Code specific files you want to ignore.
+# Settings below are often user-specific or temporary.
+# You might want to keep .vscode/settings.json if it contains project-specific configs.
+.vscode/*.log
+.vscode/*.code-workspace
+.vscode/.ropeproject/
+.vscode/extensions.json # Often contains recommended extensions, can be useful to commit
+.vscode/launch.json    # Often contains debugging configs, useful to commit
+.vscode/settings.json  # Often contains project-specific settings, useful to commit
+.vscode/tasks.json     # Often contains build tasks, useful to commit
+
+# Environment variables
+# ========================
+.env               # Contains sensitive environment variables (e.g., JWT secret)
+.flaskenv          # If you ever use Flask-DotEnv etc.
+.npmrc             # If you include frontend stuff
+
+# Build artifacts
+# ========================
+dist/
+build/
+*.egg
+
+# Testing and Coverage
+# ========================
+.coverage           # Coverage results file
+htmlcov/            # HTML coverage report directory
+
+# Operating System Files
+# ========================
+.DS_Store           # macOS
+.Trash-* # Linux trash
+Thumbs.db           # Windows
+ehthumbs.db
+Desktop.ini
+
+# Logs
+# ========================
+*.log
+
+# Databases (if you store them locally, e.g., SQLite)
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+
+# Notebooks and data (if you add them later)
+# ========================
+.ipynb_checkpoints/
+data/
+*.csv
+*.json
+*.parquet
+
+# Temporary files created by editors or OS
+# ========================
+*~
+*.bak
+*.swp
+.idea/ # PyCharm/IntelliJ IDEA

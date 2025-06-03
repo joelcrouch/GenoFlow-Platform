@@ -1,0 +1,23 @@
+# Configure coverage
+[tool.pytest.ini_options]
+pythonpath = "." # This makes sure Python can find your 'config', 'core', 'models' directories
+asyncio_mode = "auto" # Recommended for pytest-asyncio to automatically handle async tests
+
+[tool.coverage.run]
+source = ["."] # Include all files in the current directory (your project root)
+omit = [
+    "venv/*",          # Exclude virtual environment files
+    "tests/*",         # Exclude test files themselves from coverage analysis
+    "main.py",         # Typically main.py's `if __name__ == "__main__":` block is not covered
+    "config/settings.py" # You might omit settings if it's mostly config values
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover", # Lines with this comment won't be counted
+    "if TYPE_CHECKING:", # Lines used only for type checking
+    "if __name__ == ['\"']__main__['\"']:" # Standard main guard
+]
+ignore_errors = true # Continue if there are errors parsing a file
+fail_under = 80 # (Optional) Fail if coverage is below 80%
+show_missing = true # Show lines that are not covered
