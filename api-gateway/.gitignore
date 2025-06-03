@@ -31,7 +31,7 @@ venv/
 .env               # Contains sensitive environment variables (e.g., JWT secret)
 .flaskenv          # If you ever use Flask-DotEnv etc.
 .npmrc             # If you include frontend stuff
-
+.env.example 
 # Build artifacts
 # ========================
 dist/

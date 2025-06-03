@@ -12,6 +12,9 @@ from contextlib import asynccontextmanager
 from core.dependencies import get_redis_client
 from models.responses import HealthStatusResponse 
 
+# Routes imports
+from api.routes.auth import auth_router
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +30,11 @@ async def lifespan(app: FastAPI):
     app.state.redis = redis_client # Store redis client in app.state
     logger.info("Redis client initialized.")
 
+    # Initialize AuthHandler with secret key
+    # This ensures the AuthHandler is ready for use, though get_auth_handler() also initializes it.
+    # It's good practice to ensure core components are set up during lifespan.
+    # (No direct action needed here as get_auth_handler() is a dependency)
+    
     yield
 
     # Shutdown
@@ -75,7 +83,9 @@ def create_application() -> FastAPI:
             "version": "1.0.0",
             "docs": "/docs"
         }
-
+    # Include the authentication router
+    app.include_router(auth_router, prefix="/auth") 
+    
     return app
 
 # Create the app instance
