@@ -28,5 +28,10 @@ class UserPublic(UserBase):
     id: int
     created_at: datetime
 
+class UserLogin(BaseModel):
+    """Schema for user login requests."""
+    username: str # Changed from email to username to match your mock USERS_DB
+    password: str = Field(min_length=1) # Minimum length for password for basic validation
+
     class Config:
         from_attributes = True

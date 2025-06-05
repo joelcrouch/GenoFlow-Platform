@@ -15,14 +15,14 @@
 
   Create these files and populate them with their respective Pydantic models.
 
-Implement core/auth.py and api/routes/auth.py:
+- [x] Implement core/auth.py and api/routes/auth.py:
 
-    Add python-jose[cryptography] and passlib[bcrypt] to requirements.txt.
-    Create core/auth.py and move the AuthHandler class.
-    Create api/routes/auth.py and move the authentication endpoints.
-    Update main.py to include_router(auth_router).
-    Add JWT_SECRET to config/settings.py and .env.example.
-    Test the /auth/login endpoint.
+  - [x] Add python-jose[cryptography] and passlib[bcrypt] to requirements.txt.
+  - [x] Create core/auth.py and move the AuthHandler class.
+  - [x] Create api/routes/auth.py and move the authentication endpoints.
+  - [x] Update main.py to include_router(auth_router).
+  - [x] Add JWT_SECRET to config/settings.py and .env.example.
+  - [x] Test the /auth/login endpoint.
 
 Add core/middleware.py and its components (Error Handling, Logging, Rate Limiting, Authentication):
 

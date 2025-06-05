@@ -37,6 +37,11 @@ from main import app as fastapi_app
 from core.auth import AuthHandler, get_auth_handler
 from config.settings import get_settings
 from core.exceptions import UnauthorizedException
+from unittest.mock import patch 
+import datetime
+from jose import jwt 
+from typing import cast
+from freezegun import freeze_time
 # Update the client fixture to use ASGITransport as per httpx deprecation warning
 @pytest_asyncio.fixture(scope="session")
 async def client():
@@ -209,36 +214,112 @@ def test_auth_handler_token_encoding_decoding(auth_handler_instance: AuthHandler
     assert "user" in payload["roles"]
     assert "viewer" in payload["roles"]
     assert "exp" in payload
-
-
-def test_auth_handler_token_expiry(auth_handler_instance: AuthHandler):
+    
+def test_auth_handler_token_expiry_freezegun(auth_handler_instance: AuthHandler):
     user_id = "expireduser"
     roles = ["user"]
-    # Create a token that expires very quickly
-    # Use a slightly longer sleep to ensure expiration across different system loads
-    token = auth_handler_instance.encode_token(user_id=user_id, roles=roles, expiration_minutes=0.001)
 
-    import time
-    time.sleep(0.02) # Give it a bit more time to ensure it expires, e.g., 20ms
+    # 1. Freeze time to a specific point for token encoding
+    # Use explicit UTC timezone for robustness, freezegun handles the patching
+    with freeze_time("2025-01-01 12:00:00+00:00"):
+        token = auth_handler_instance.encode_token(
+            user_id=user_id,
+            roles=roles,
+            expiration_minutes=1 # Token expires 1 minute from 12:00:00 UTC
+        )
 
-    # Change the expected exception type to UnauthorizedException
-    with pytest.raises(UnauthorizedException) as excinfo:
-        auth_handler_instance.decode_token(token)
-    assert "Invalid or expired token" in str(excinfo.value)
-    # You can also assert on the HTTPException status code if UnauthorizedException includes it
-    # assert excinfo.value.status_code == 401 # 
+    # 2. Advance time beyond token expiration (2 minutes later)
+    with freeze_time("2025-01-01 12:02:00+00:00"):
+        # 3. Try to decode the token; it should now be expired
+        with pytest.raises(UnauthorizedException) as excinfo:
+            auth_handler_instance.decode_token(token)
+        assert "Invalid or expired token" in excinfo.value.detail
+        assert "Signature has expired" in excinfo.value.detail   
+
+# # Updated token expiry test using mocking
+# def test_auth_handler_token_expiry_mocked(auth_handler_instance: AuthHandler):
+#     user_id = "expireduser"
+#     roles = ["user"]
+
+#     # 1. Mock datetime.datetime.utcnow() for python-jose's internal use
+#     # We patch the datetime module *as it's used by the jwt library*
+#     # This is often 'jose.jwt.datetime'
+#     # Or 'jose.jws.datetime' or 'jose.jwe.datetime' depending on exact internal path
+#     # Let's try 'jose.jwt.datetime' first, as jwt.encode/decode are the main entry points
+#     with patch('jose.jwt.datetime') as mock_datetime:
+#         now = datetime.datetime.utcnow() # Get real utcnow for our base
+#         mock_datetime.utcnow.return_value = now
+#         mock_datetime.timedelta = datetime.timedelta # Ensure timedelta still works
+
+#         # When token is encoded, it will use 'now' as its creation time
+#         token = auth_handler_instance.encode_token(
+#             user_id=user_id,
+#             roles=roles,
+#             expiration_minutes=1 # Token expires 1 minute from 'now'
+#         )
+
+#         # 2. Advance time beyond token expiration
+#         mock_datetime.utcnow.return_value = now + datetime.timedelta(minutes=2) # 2 minutes later
+
+#         # 3. Try to decode the token; it should now be expired
+#         with pytest.raises(UnauthorizedException) as excinfo:
+#             auth_handler_instance.decode_token(token)
+
+#         assert "Invalid or expired token" in str(excinfo.value)
+
+# # Updated token expiry test using mocking
+# def test_auth_handler_token_expiry_mocked(auth_handler_instance: AuthHandler):
+#     user_id = "expireduser"
+#     roles = ["user"]
+
+#     # 1. Mock datetime.utcnow() to a specific point in time
+#     now = datetime.datetime.utcnow()
+#     with patch('datetime.datetime') as mock_datetime:
+#         mock_datetime.utcnow.return_value = now
+#         # When token is encoded, it will use 'now' as its creation time
+#         token = auth_handler_instance.encode_token(
+#             user_id=user_id,
+#             roles=roles,
+#             expiration_minutes=1 # Token expires 1 minute from 'now'
+#         )
+
+#         # 2. Advance time beyond token expiration
+#         mock_datetime.utcnow.return_value = now + datetime.timedelta(minutes=2) # 2 minutes later
+
+#         # 3. Try to decode the token; it should now be expired
+#         with pytest.raises(UnauthorizedException) as excinfo:
+#             auth_handler_instance.decode_token(token)
+
+#         assert "Invalid or expired token" in str(excinfo.value)
+
 # def test_auth_handler_token_expiry(auth_handler_instance: AuthHandler):
 #     user_id = "expireduser"
 #     roles = ["user"]
 #     # Create a token that expires very quickly
-#     token = auth_handler_instance.encode_token(user_id=user_id, roles=roles, expiration_minutes=0.001) # Very short expiry
+#     # Use a slightly longer sleep to ensure expiration across different system loads
+#     token = auth_handler_instance.encode_token(user_id=user_id, roles=roles, expiration_minutes=0.001)
 
-#     # Wait for the token to expire
-#     # This sleep makes the test slow, but demonstrates expiry
-#     # In real world, you might mock datetime for faster tests
 #     import time
-#     time.sleep(0.01) # Wait longer than 0.001 minutes
+#     time.sleep(0.02) # Give it a bit more time to ensure it expires, e.g., 20ms
 
-#     with pytest.raises(UnauthorizedException) as excinfo: # Catching generic Exception as UnauthorizedException is not directly exposed without app context
+#     # Change the expected exception type to UnauthorizedException
+#     with pytest.raises(UnauthorizedException) as excinfo:
 #         auth_handler_instance.decode_token(token)
-#     assert "Invalid or expired token" in str(excinfo.value) # Check for the detail in the exception message
+#     assert "Invalid or expired token" in str(excinfo.value)
+#     # You can also assert on the HTTPException status code if UnauthorizedException includes it
+#     # assert excinfo.value.status_code == 401 # 
+# # def test_auth_handler_token_expiry(auth_handler_instance: AuthHandler):
+# #     user_id = "expireduser"
+# #     roles = ["user"]
+# #     # Create a token that expires very quickly
+# #     token = auth_handler_instance.encode_token(user_id=user_id, roles=roles, expiration_minutes=0.001) # Very short expiry
+
+# #     # Wait for the token to expire
+# #     # This sleep makes the test slow, but demonstrates expiry
+# #     # In real world, you might mock datetime for faster tests
+# #     import time
+# #     time.sleep(0.01) # Wait longer than 0.001 minutes
+
+# #     with pytest.raises(UnauthorizedException) as excinfo: # Catching generic Exception as UnauthorizedException is not directly exposed without app context
+# #         auth_handler_instance.decode_token(token)
+# #     assert "Invalid or expired token" in str(excinfo.value) # Check for the detail in the exception message

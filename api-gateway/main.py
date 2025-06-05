@@ -1,9 +1,10 @@
 # main.py - FastAPI Application Entry Point
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+from pydantic import BaseModel
 import uvicorn
 import logging
+import datetime
 import time
 
 # Internal imports
@@ -11,6 +12,7 @@ from config.settings import get_settings
 from contextlib import asynccontextmanager
 from core.dependencies import get_redis_client
 from models.responses import HealthStatusResponse 
+
 
 # Routes imports
 from api.routes.auth import auth_router
@@ -84,19 +86,20 @@ def create_application() -> FastAPI:
             "docs": "/docs"
         }
     # Include the authentication router
-    app.include_router(auth_router, prefix="/auth") 
+    
     
     return app
 
+
 # Create the app instance
 app = create_application()
-
-if __name__ == "__main__":
-    settings = get_settings()
-    uvicorn.run(
-        "main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_level="info"
-    )
+app.include_router(auth_router, prefix="/auth") 
+# if __name__ == "__main__":
+#     settings = get_settings()
+#     uvicorn.run(
+#         "main:app",
+#         host=settings.host,
+#         port=settings.port,
+#         reload=settings.debug,
+#         log_level="info"
+#     )
