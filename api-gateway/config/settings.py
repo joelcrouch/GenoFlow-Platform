@@ -33,6 +33,7 @@
 #     if _settings is None:
 #         _settings = Settings()
 #     return _settings
+
 from pydantic_settings import BaseSettings, SettingsConfigDict # IMPORT SettingsConfigDict
 from pydantic import Field
 from typing import List, Optional
@@ -63,6 +64,10 @@ class Settings(BaseSettings):
     # If your environment variable is REDIS_URL, and your field is `redis_url`,
     # it will automatically pick it up.
 
+    # JWT Configuration (ADD THIS)
+    jwt_secret_key: str = Field(..., description="Secret key for JWT signing. MUST BE SET IN .env")
+    jwt_algorithm: str = "HS256" # Default algorithm, can be overridden if needed
+    jwt_access_token_expire_minutes: int = 30 # Default expiration time for access tokens
 _settings: Optional[Settings] = None
 
 def get_settings() -> Settings:

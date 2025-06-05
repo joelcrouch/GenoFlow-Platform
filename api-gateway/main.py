@@ -1,9 +1,10 @@
 # main.py - FastAPI Application Entry Point
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+from pydantic import BaseModel
 import uvicorn
 import logging
+import datetime
 import time
 
 # Internal imports
@@ -11,6 +12,10 @@ from config.settings import get_settings
 from contextlib import asynccontextmanager
 from core.dependencies import get_redis_client
 from models.responses import HealthStatusResponse 
+
+
+# Routes imports
+from api.routes.auth import auth_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +32,11 @@ async def lifespan(app: FastAPI):
     app.state.redis = redis_client # Store redis client in app.state
     logger.info("Redis client initialized.")
 
+    # Initialize AuthHandler with secret key
+    # This ensures the AuthHandler is ready for use, though get_auth_handler() also initializes it.
+    # It's good practice to ensure core components are set up during lifespan.
+    # (No direct action needed here as get_auth_handler() is a dependency)
+    
     yield
 
     # Shutdown
@@ -75,18 +85,21 @@ def create_application() -> FastAPI:
             "version": "1.0.0",
             "docs": "/docs"
         }
-
+    # Include the authentication router
+    
+    
     return app
+
 
 # Create the app instance
 app = create_application()
-
-if __name__ == "__main__":
-    settings = get_settings()
-    uvicorn.run(
-        "main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_level="info"
-    )
+app.include_router(auth_router, prefix="/auth") 
+# if __name__ == "__main__":
+#     settings = get_settings()
+#     uvicorn.run(
+#         "main:app",
+#         host=settings.host,
+#         port=settings.port,
+#         reload=settings.debug,
+#         log_level="info"
+#     )
