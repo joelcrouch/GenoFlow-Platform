@@ -33,7 +33,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport # Import ASGITransport
 import asyncio # Add this if not already present
 
-from main import app as fastapi_app
+# from main import app as fastapi_app
 from core.auth import AuthHandler, get_auth_handler
 from config.settings import get_settings
 from core.exceptions import UnauthorizedException
@@ -42,12 +42,12 @@ import datetime
 from jose import jwt 
 from typing import cast
 from freezegun import freeze_time
-# Update the client fixture to use ASGITransport as per httpx deprecation warning
-@pytest_asyncio.fixture(scope="session")
-async def client():
-    # Use ASGITransport to address the DeprecationWarning
-    async with AsyncClient(transport=ASGITransport(app=fastapi_app), base_url="http://test") as ac:
-        yield ac
+# # Update the client fixture to use ASGITransport as per httpx deprecation warning
+# @pytest_asyncio.fixture(scope="session")
+# async def client():
+#     # Use ASGITransport to address the DeprecationWarning
+#     async with AsyncClient(transport=ASGITransport(app=fastapi_app), base_url="http://test") as ac:
+#         yield ac
 
 @pytest.fixture(scope="session")
 def anyio_backend():
